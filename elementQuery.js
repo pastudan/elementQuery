@@ -1,3 +1,4 @@
+
 /*! elementQuery | Author: Tyson Matanich (http://matanich.com), 2013 | License: MIT */
 (function (window, document, undefined) {
     // Enable strict mode
@@ -26,7 +27,7 @@
         if (selector != "") {
             var parts;
             if (!number && !value) {
-                parts = /^([0-9]*.?[0-9]+)(px|em)$/.exec(pair)
+                parts = /^([0-9]*.?[0-9]+)(px|em|%)$/.exec(pair)
                 if (parts != null) {
                     number = Number(parts[1]);
                     if (number + "" != "NaN") {
@@ -78,7 +79,7 @@
 
         if (selectorText) {
 
-            var regex = /(\[(min\-width|max\-width|min\-height|max\-height)\~\=(\'|\")([0-9]*.?[0-9]+)(px|em)(\'|\")\])(\[(min\-width|max\-width|min\-height|max\-height)\~\=(\'|\")([0-9]*.?[0-9]+)(px|em)(\'|\")\])?/gi;
+            var regex = /(\[(min\-width|max\-width|min\-height|max\-height)\~\=(\'|\")([0-9]*.?[0-9]+)(px|em|%)(\'|\")\])(\[(min\-width|max\-width|min\-height|max\-height)\~\=(\'|\")([0-9]*.?[0-9]+)(px|em|%)(\'|\")\])?/gi;
 
             // Split out the full selectors separated by a comma ','
             var selectors = selectorText.split(",");
@@ -94,7 +95,7 @@
 
                         // result[2] = min-width|max-width|min-height|max-height
                         // result[4] = number
-                        // result[5] = px|em
+                        // result[5] = px|em|%
                         // result[7] = has another
 
                         // Ensure that it contains a valid numeric value to compare against
@@ -108,7 +109,7 @@
                                 // Append second half of the selector
                                 tail = selectors[i].substring(result.index + result[1].length);
                                 if (tail.length > 0) {
-                                    
+
                                     t = tail.indexOf(" ");
                                     if (t != 0) {
                                         if (t > 0) {
@@ -117,7 +118,7 @@
                                         }
 
                                         // Remove any sibling element queries
-                                        tail = tail.replace(/(\[(min\-width|max\-width|min\-height|max\-height)\~\=(\'|\")([0-9]*.?[0-9]+)(px|em)(\'|\")\])/gi, "");
+                                        tail = tail.replace(/(\[(min\-width|max\-width|min\-height|max\-height)\~\=(\'|\")([0-9]*.?[0-9]+)(px|em|%)(\'|\")\])/gi, "");
                                         selector += tail;
                                     }
                                 }
@@ -144,7 +145,7 @@
     };
 
     var processStyleSheet = function (styleSheet, force) {
-        
+
         if (cssRules == null) {
             setCssRules();
         }
@@ -205,7 +206,7 @@
             var val = trim(value);
             if (val != "") {
                 var cur = clean(element, attr);
-                
+
                 if (cur.indexOf(" " + val + " ") < 0) {
                     // Add the value if its not already there
                     element.setAttribute(attr, trim(cur + val));
@@ -265,7 +266,7 @@
                     // For each min|max-width|height string
                     for (j in queryData[i]) {
 
-                        // For each number px|em value pair
+                        // For each number px|em|% value pair
                         for (k in queryData[i][j]) {
 
                             val = queryData[i][j][k][0];
@@ -277,11 +278,29 @@
 
                             /* NOTE: Using offsetWidth/Height so an element can be adjusted when it reaches a specific size.
                             /* For Nested queries scrollWidth/Height or clientWidth/Height may sometime be desired but are not supported. */
+                            var percentWidth = (( element.offsetWidth / element.parentNode.offsetWidth ) * 100);
+                            var percentHeight = (( element.offsetHeight / element.parentNode.offsetHeight ) * 100);
+                            console.log(percentWidth, percentHeight);
 
-                            if ((j == "min-width" && element.offsetWidth >= val) ||
-                                (j == "max-width" && element.offsetWidth <= val) ||
-                                (j == "min-height" && element.offsetHeight >= val) ||
-                                (j == "max-height" && element.offsetHeight <= val)) {
+                            if ( (queryData[i][j][k][1] == "px" || queryData[i][j][k][1] == "em" ) &&
+                                (
+                                    (j == "min-width" && element.offsetWidth >= val) ||
+                                        (j == "max-width" && element.offsetWidth <= val) ||
+                                        (j == "min-height" && element.offsetHeight >= val) ||
+                                        (j == "max-height" && element.offsetHeight <= val)
+                                    )
+                                ) {
+                                // Add matching attr value
+                                addTo(element, j, k);
+                            }
+                            else if (queryData[i][j][k][1] == "%" &&
+                                (
+                                    (j == "min-width" && percentWidth >= val) ||
+                                        (j == "max-width" && percentWidth  <= val) ||
+                                        (j == "min-height" && percentHeight >= val) ||
+                                        (j == "max-height" && percentHeight <= val)
+                                    )
+                                ) {
                                 // Add matching attr value
                                 addTo(element, j, k);
                             }
@@ -336,7 +355,7 @@
             // For each min|max-width|height string
             for (j in queryData[i]) {
 
-                // For each number px|em value pair
+                // For each number px|em|% value pair
                 for (k in queryData[i][j]) {
 
                     if (data[i] === undefined) {
