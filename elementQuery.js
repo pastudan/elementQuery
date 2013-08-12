@@ -1,4 +1,3 @@
-
 /*! elementQuery | Author: Tyson Matanich (http://matanich.com), 2013 | License: MIT */
 (function (window, document, undefined) {
     // Enable strict mode
@@ -280,7 +279,6 @@
                             /* For Nested queries scrollWidth/Height or clientWidth/Height may sometime be desired but are not supported. */
                             var percentWidth = (( element.offsetWidth / element.parentNode.offsetWidth ) * 100);
                             var percentHeight = (( element.offsetHeight / element.parentNode.offsetHeight ) * 100);
-                            console.log(percentWidth, percentHeight);
 
                             if ( (queryData[i][j][k][1] == "px" || queryData[i][j][k][1] == "em" ) &&
                                 (
